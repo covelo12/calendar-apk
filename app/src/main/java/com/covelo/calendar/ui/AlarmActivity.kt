@@ -35,6 +35,10 @@ class AlarmActivity : AppCompatActivity() {
         keyguardManager.requestDismissKeyguard(this, null)
 
         setContentView(com.covelo.calendar.R.layout.activity_alarm)
+        // Without this the system bars keep the default theme's colour, which on a full-screen
+        // alarm shows up as a bright band across the top of an otherwise dark screen.
+        window.statusBarColor = ALARM_BACKGROUND
+        window.navigationBarColor = ALARM_BACKGROUND
 
         val title = intent.getStringExtra(EXTRA_TITLE) ?: "Alarm"
         val body = intent.getStringExtra(EXTRA_BODY) ?: ""
@@ -47,10 +51,21 @@ class AlarmActivity : AppCompatActivity() {
             stopRinging()
             finish()
         }
-        findViewById<MaterialButton>(com.covelo.calendar.R.id.snoozeButton).setOnClickListener {
-            stopRinging()
-            snooze()
-            finish()
+        // Five minutes is the right snooze for "I'm nearly ready"; it is the wrong one for
+        // "not before this afternoon", and only offering it meant the second case got dismissed
+        // instead — which loses the reminder entirely.
+        val snoozeOptions = listOf(
+            com.covelo.calendar.R.id.snooze5 to 5,
+            com.covelo.calendar.R.id.snooze15 to 15,
+            com.covelo.calendar.R.id.snooze30 to 30,
+            com.covelo.calendar.R.id.snooze60 to 60
+        )
+        for ((viewId, minutes) in snoozeOptions) {
+            findViewById<MaterialButton>(viewId).setOnClickListener {
+                stopRinging()
+                snooze(minutes)
+                finish()
+            }
         }
 
         startRinging()
@@ -92,7 +107,7 @@ class AlarmActivity : AppCompatActivity() {
         vibrator?.cancel()
     }
 
-    private fun snooze() {
+    private fun snooze(minutes: Int) {
         val alarmManager = getSystemService(AlarmManager::class.java) ?: return
         val title = intent.getStringExtra(EXTRA_TITLE) ?: "Alarm"
         val body = intent.getStringExtra(EXTRA_BODY) ?: ""
@@ -109,7 +124,7 @@ class AlarmActivity : AppCompatActivity() {
             this, snoozeKey.hashCode(), snoozeIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        val triggerAt = System.currentTimeMillis() + 5 * 60 * 1000
+        val triggerAt = System.currentTimeMillis() + minutes * 60 * 1000L
         alarmManager.setAlarmClock(AlarmManager.AlarmClockInfo(triggerAt, pendingIntent), pendingIntent)
     }
 
@@ -119,6 +134,7 @@ class AlarmActivity : AppCompatActivity() {
     }
 
     companion object {
+        private const val ALARM_BACKGROUND = 0xFF1E2326.toInt()
         const val EXTRA_TITLE = "title"
         const val EXTRA_BODY = "body"
         const val EXTRA_NOTIFICATION_ID = "notification_id"

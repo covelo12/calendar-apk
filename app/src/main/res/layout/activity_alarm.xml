@@ -1,46 +1,179 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  A ringing alarm gets read at arm's length, half awake, often on a lock screen. So it leads
+  with the clock — which is what actually tells you whether this matters right now — then what
+  is ringing, and keeps dismiss well away from the snooze row: dismissing when you meant to
+  snooze is the one mistake here with real consequences.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#1E2326"
-    android:gravity="center"
     android:orientation="vertical"
-    android:padding="32dp">
+    android:paddingHorizontal="24dp"
+    android:paddingTop="56dp"
+    android:paddingBottom="32dp">
 
-    <TextView
-        android:id="@+id/alarmTitle"
+    <!-- TextClock keeps itself current, so a long ring never shows a stale time. -->
+    <TextClock
+        android:id="@+id/alarmClock"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:format12Hour="h:mm"
+        android:format24Hour="HH:mm"
         android:gravity="center"
         android:textColor="#D3C6AA"
-        android:textSize="28sp"
+        android:textSize="64sp"
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/alarmBody"
+    <TextClock
+        android:id="@+id/alarmDate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:format12Hour="EEEE, d MMMM"
+        android:format24Hour="EEEE, d MMMM"
         android:gravity="center"
         android:textColor="#7A8478"
-        android:textSize="18sp" />
+        android:textSize="15sp" />
+
+    <!-- The accent bar marks "this is the thing that is ringing" without needing another card. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="48dp"
+        android:orientation="horizontal">
+
+        <View
+            android:layout_width="3dp"
+            android:layout_height="match_parent"
+            android:background="#A7C080" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="16dp">
+
+            <TextView
+                android:id="@+id/alarmTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="4"
+                android:textColor="#D3C6AA"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/alarmBody"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="#A7C080"
+                android:textSize="17sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="@string/snooze_for"
+        android:textColor="#7A8478"
+        android:textSize="13sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/snooze5"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:letterSpacing="0"
+            android:paddingHorizontal="0dp"
+            android:text="@string/snooze_5"
+            android:textColor="#D3C6AA"
+            android:textSize="15sp"
+            app:cornerRadius="14dp"
+            app:strokeColor="#3D484D" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/snooze15"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:letterSpacing="0"
+            android:paddingHorizontal="0dp"
+            android:text="@string/snooze_15"
+            android:textColor="#D3C6AA"
+            android:textSize="15sp"
+            app:cornerRadius="14dp"
+            app:strokeColor="#3D484D" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/snooze30"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:letterSpacing="0"
+            android:paddingHorizontal="0dp"
+            android:text="@string/snooze_30"
+            android:textColor="#D3C6AA"
+            android:textSize="15sp"
+            app:cornerRadius="14dp"
+            app:strokeColor="#3D484D" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/snooze60"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:letterSpacing="0"
+            android:paddingHorizontal="0dp"
+            android:text="@string/snooze_60"
+            android:textColor="#D3C6AA"
+            android:textSize="15sp"
+            app:cornerRadius="14dp"
+            app:strokeColor="#3D484D" />
+    </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/dismissButton"
         android:layout_width="match_parent"
-        android:layout_height="72dp"
-        android:layout_marginTop="48dp"
+        android:layout_height="68dp"
+        android:layout_marginTop="20dp"
         android:backgroundTint="#E67E80"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:letterSpacing="0"
         android:text="@string/dismiss"
-        android:textSize="20sp" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/snoozeButton"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:layout_marginTop="16dp"
-        android:backgroundTint="#7A8478"
-        android:text="@string/snooze"
-        android:textSize="18sp" />
+        android:textColor="#1E2326"
+        android:textSize="19sp"
+        android:textStyle="bold"
+        app:cornerRadius="18dp" />
 
 </LinearLayout>

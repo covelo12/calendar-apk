@@ -4,5 +4,9 @@
     <string name="action_device_setup">Device setup</string>
     <string name="action_sync_now">Sync now</string>
     <string name="dismiss">Dismiss</string>
-    <string name="snooze">Snooze 5 min</string>
+    <string name="snooze_for">Snooze for</string>
+    <string name="snooze_5">5 min</string>
+    <string name="snooze_15">15 min</string>
+    <string name="snooze_30">30 min</string>
+    <string name="snooze_60">1 hour</string>
 </resources>
