@@ -12,6 +12,7 @@ object Prefs {
     private const val KEY_SESSION_TOKEN = "session_token"
     private const val KEY_SESSION_EXPIRES = "session_expires"
     private const val KEY_LAST_SYNC = "last_sync"
+    private const val KEY_PENDING_DELETES = "pending_deletes"
 
     private fun prefs(context: Context): SharedPreferences =
         context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
@@ -53,5 +54,27 @@ object Prefs {
 
     fun saveLastSync(context: Context, isoTimestamp: String) {
         prefs(context).edit().putString(KEY_LAST_SYNC, isoTimestamp).apply()
+    }
+
+    /** Event ids removed from the local cache whose server-side DELETE hasn't been confirmed yet.
+     * A full or incremental sync must not let one of these ids back into the cache — otherwise a
+     * delete that failed to reach the server (no network, a dropped request) silently "undoes"
+     * itself the next time the server's copy comes back down. SyncWorker retries these each tick
+     * and only clears an id once the DELETE actually succeeds (or the server 404s, meaning it's
+     * already gone). */
+    fun pendingDeletes(context: Context): Set<String> =
+        prefs(context).getStringSet(KEY_PENDING_DELETES, emptySet()).orEmpty().toSet()
+
+    fun addPendingDelete(context: Context, eventId: String) {
+        val current = pendingDeletes(context).toMutableSet()
+        current.add(eventId)
+        prefs(context).edit().putStringSet(KEY_PENDING_DELETES, current).apply()
+    }
+
+    fun removePendingDelete(context: Context, eventId: String) {
+        val current = pendingDeletes(context).toMutableSet()
+        if (current.remove(eventId)) {
+            prefs(context).edit().putStringSet(KEY_PENDING_DELETES, current).apply()
+        }
     }
 }

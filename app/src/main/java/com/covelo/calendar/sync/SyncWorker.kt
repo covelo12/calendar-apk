@@ -26,6 +26,8 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
         if (!Prefs.isEnrolled(applicationContext)) return Result.success()
 
         return try {
+            retryPendingDeletes()
+
             val since = Prefs.lastSync(applicationContext)
             val path = if (since != null) "/events?since=${java.net.URLEncoder.encode(since, "UTF-8")}" else "/events"
             val result = ApiClient.authedRequest(applicationContext, path)
@@ -42,6 +44,23 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
             Result.success()
         } catch (e: Exception) {
             Result.retry()
+        }
+    }
+
+    /** A widget delete whose DELETE call failed earlier (offline, dropped request) left its id in
+     * Prefs.pendingDeletes so the fetch below can't let the still-live server row back into the
+     * cache. Actually retry it here — without this, "will retry next sync" was a promise the app
+     * never kept, and the event just stayed a phantom until it happened to get deleted again. */
+    private suspend fun retryPendingDeletes() {
+        for (id in Prefs.pendingDeletes(applicationContext)) {
+            try {
+                val res = ApiClient.authedRequest(applicationContext, "/events/$id", "DELETE")
+                if (res.statusCode in 200..299 || res.statusCode == 404) {
+                    Prefs.removePendingDelete(applicationContext, id)
+                }
+            } catch (e: Exception) {
+                // Leave it pending; the next periodic tick tries again.
+            }
         }
     }
 

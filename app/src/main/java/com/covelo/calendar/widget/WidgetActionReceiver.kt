@@ -7,6 +7,7 @@ import android.widget.Toast
 import com.covelo.calendar.MainActivity
 import com.covelo.calendar.alert.AlertScheduler
 import com.covelo.calendar.auth.ApiClient
+import com.covelo.calendar.auth.Prefs
 import com.covelo.calendar.sync.EventCache
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,10 +35,12 @@ class WidgetActionReceiver : BroadcastReceiver() {
                     var failed = false
                     try {
                         EventCache.removeLocal(context, eventId)
+                        Prefs.addPendingDelete(context, eventId)
                         AlertScheduler.rescheduleAll(context)
                         DayWidgetProvider.updateAll(context)
                         val res = ApiClient.authedRequest(context, "/events/$eventId", "DELETE")
-                        failed = res.statusCode !in 200..299
+                        failed = res.statusCode !in 200..299 && res.statusCode != 404
+                        if (!failed) Prefs.removePendingDelete(context, eventId)
                         if (failed) android.util.Log.e("WidgetAction", "Delete failed: HTTP ${res.statusCode} ${res.body}")
                     } catch (e: Exception) {
                         failed = true

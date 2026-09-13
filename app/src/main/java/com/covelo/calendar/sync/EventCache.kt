@@ -153,15 +153,20 @@ object EventCache {
 
     /**
      * Applies an incremental (or full, on first sync) pull from GET /events: upserts live rows,
-     * drops rows the server reports as soft-deleted. Returns the merged cache.
+     * drops rows the server reports as soft-deleted. An id still in Prefs.pendingDeletes (a
+     * local delete whose DELETE request hasn't been confirmed yet) is skipped even if the server
+     * still lists it as live — otherwise a delete that hasn't reached the server yet gets undone
+     * by the very next sync bringing the "still there" server row back into the cache. Returns
+     * the merged cache.
      */
     @Synchronized
     fun applyServerEvents(context: Context, serverEventsJson: JSONArray, isIncremental: Boolean): Map<String, CachedEvent> {
         val current = if (isIncremental) loadAll(context).toMutableMap() else mutableMapOf()
+        val pendingDeletes = com.covelo.calendar.auth.Prefs.pendingDeletes(context)
         for (i in 0 until serverEventsJson.length()) {
             val row = serverEventsJson.getJSONObject(i)
             val id = row.getString("id")
-            if (row.optBoolean("deleted", false)) {
+            if (row.optBoolean("deleted", false) || id in pendingDeletes) {
                 current.remove(id)
             } else {
                 current[id] = CachedEvent.fromServerJson(row)
