@@ -29,6 +29,14 @@ class QuickAddActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setTheme(R.style.Theme_Calendar_Dialog)
+        // Launched via FLAG_ACTIVITY_NEW_TASK from a widget PendingIntent (no existing task to
+        // attach to) — on modern Android/OEM launchers that triggers a full "opening app" task
+        // transition (app icon + label card) sized for a normal fullscreen activity, which never
+        // gets fully covered by this small floating dialog and is left showing behind it.
+        // Disabling the transition entirely (rather than trying to theme it) is what actually
+        // removes it — confirmed on Android 16 (windowDisablePreview alone does not).
+        @Suppress("DEPRECATION")
+        overridePendingTransition(0, 0)
         setContentView(R.layout.activity_quick_add)
 
         kind = intent.getStringExtra(EXTRA_KIND) ?: "event"

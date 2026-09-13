@@ -3,6 +3,7 @@
         <item name="colorPrimary">#7FBBB3</item>
         <item name="colorPrimaryDark">#5A8A83</item>
         <item name="colorAccent">#A7C080</item>
+        <item name="materialButtonStyle">@style/Widget.Calendar.Button</item>
     </style>
 
     <style name="Theme.Calendar.Alarm" parent="Theme.MaterialComponents.DayNight.NoActionBar">
@@ -12,5 +13,12 @@
     <style name="Theme.Calendar.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog">
         <item name="android:windowIsFloating">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="materialButtonStyle">@style/Widget.Calendar.Button</item>
+    </style>
+
+    <style name="Widget.Calendar.Button" parent="Widget.MaterialComponents.Button">
+        <item name="android:textAllCaps">false</item>
     </style>
 </resources>
