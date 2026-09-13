@@ -4,46 +4,66 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:paddingTop="6dp"
-    android:paddingBottom="6dp">
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
 
-    <TextView
+    <!-- 40dp tap target; the drawn circle inside is much smaller (21dp) so it stays
+         proportional to the task text instead of dominating the row. Ring/fill drawable
+         and the category color are both applied at bind time (TodoWidgetRemoteViewsService). -->
+    <FrameLayout
         android:id="@+id/todoCheckbox"
-        android:layout_width="26dp"
-        android:layout_height="26dp"
-        android:layout_marginEnd="8dp"
-        android:background="@drawable/widget_checkbox_off"
-        android:gravity="center"
-        android:textColor="#2D353B"
-        android:textSize="14sp"
-        android:textStyle="bold" />
+        android:layout_width="40dp"
+        android:layout_height="40dp">
+
+        <ImageView
+            android:id="@+id/todoCheckboxCircle"
+            android:layout_width="21dp"
+            android:layout_height="21dp"
+            android:layout_gravity="center"
+            android:src="@drawable/widget_checkbox_ring" />
+
+        <ImageView
+            android:id="@+id/todoCheckMark"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_gravity="center"
+            android:src="@drawable/widget_check"
+            android:visibility="gone" />
+
+    </FrameLayout>
 
     <TextView
         android:id="@+id/todoTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
+        android:layout_marginStart="4dp"
         android:ellipsize="end"
         android:maxLines="1"
-        android:textColor="#D3C6AA"
-        android:textSize="13sp" />
+        android:textColor="#E9E5D3"
+        android:textSize="14sp" />
 
     <TextView
         android:id="@+id/todoDueLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="6dp"
-        android:textColor="#859289"
+        android:layout_marginStart="8dp"
+        android:textColor="#9BA6A0"
         android:textSize="11sp" />
 
-    <TextView
+    <FrameLayout
         android:id="@+id/todoDelete"
-        android:layout_width="26dp"
-        android:layout_height="26dp"
-        android:layout_marginStart="6dp"
-        android:gravity="center"
-        android:text="✕"
-        android:textColor="#859289"
-        android:textSize="12sp" />
+        android:layout_width="40dp"
+        android:layout_height="40dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="✕"
+            android:textColor="#9BA6A0"
+            android:textSize="13sp" />
+
+    </FrameLayout>
 
 </LinearLayout>

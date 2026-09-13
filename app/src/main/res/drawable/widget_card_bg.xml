@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Deep slate instead of a flat neutral grey, so the pastel category accents inside the
+     widget sit calmly against it rather than buzzing — same direction as the web redesign. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#232A2F" />
+    <corners android:radius="20dp" />
+</shape>

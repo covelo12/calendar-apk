@@ -2,9 +2,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#2D353B"
+    android:background="@drawable/widget_card_bg"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,19 +17,19 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="#D3C6AA"
-            android:textSize="15sp"
+            android:textColor="#F1EEE3"
+            android:textSize="16sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/widgetAddButton"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="#3F4A50"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/widget_add_button_bg"
             android:gravity="center"
             android:text="+"
-            android:textColor="#D3C6AA"
-            android:textSize="16sp"
+            android:textColor="#E9E5D3"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
     </LinearLayout>
@@ -39,7 +39,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="10dp"
         android:divider="@null"
         android:dividerHeight="2dp" />
 
@@ -49,7 +49,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
         android:text="Nothing today"
-        android:textColor="#859289"
+        android:textColor="#9BA6A0"
         android:textSize="13sp"
         android:visibility="gone" />
 

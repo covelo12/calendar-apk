@@ -47,7 +47,7 @@ private class DayWidgetFactory(private val context: android.content.Context) : R
         views.setInt(R.id.itemColorDot, "setColorFilter", parseColor(item.color))
         // Important (alarm-style) items get a highlighted accent bar so they stand out from
         // routine day-to-day entries — matches the same red used across the web app and app icon.
-        views.setInt(R.id.itemAccent, "setBackgroundColor", if (item.important) Color.parseColor("#E67E80") else Color.TRANSPARENT)
+        views.setInt(R.id.itemAccent, "setBackgroundColor", if (item.important) Color.parseColor("#E5A6A7") else Color.TRANSPARENT)
         views.setViewVisibility(R.id.itemImportantMark, if (item.important) android.view.View.VISIBLE else android.view.View.GONE)
         views.setFloat(R.id.itemTitle, "setAlpha", if (item.completed) 0.5f else 1f)
 

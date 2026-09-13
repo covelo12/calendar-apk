@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tinted at runtime to the task's own category color via ImageView.setColorFilter (SRC_ATOP
+     recolors the stroke pixels only, leaving the transparent center untouched) — replaces a
+     flat neutral ring shared by every task regardless of category. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <stroke android:width="2dp" android:color="#FFFFFF" />
+    <solid android:color="@android:color/transparent" />
+</shape>

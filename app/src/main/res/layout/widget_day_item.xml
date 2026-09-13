@@ -4,8 +4,8 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:paddingTop="5dp"
-    android:paddingBottom="5dp">
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
 
     <!-- RemoteViews only allows a fixed whitelist of view classes to inflate — a bare <View>
          throws "Class not allowed to be inflated" and silently breaks the whole widget adapter
@@ -14,20 +14,20 @@
         android:id="@+id/itemAccent"
         android:layout_width="4dp"
         android:layout_height="match_parent"
-        android:layout_marginEnd="8dp" />
+        android:layout_marginEnd="10dp" />
 
     <ImageView
         android:id="@+id/itemColorDot"
-        android:layout_width="8dp"
-        android:layout_height="8dp"
-        android:layout_marginEnd="8dp"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:layout_marginEnd="10dp"
         android:src="@drawable/widget_dot" />
 
     <TextView
         android:id="@+id/itemTime"
         android:layout_width="46dp"
         android:layout_height="wrap_content"
-        android:textColor="#859289"
+        android:textColor="#9BA6A0"
         android:textSize="11sp" />
 
     <TextView
@@ -37,8 +37,8 @@
         android:layout_weight="1"
         android:ellipsize="end"
         android:maxLines="1"
-        android:textColor="#D3C6AA"
-        android:textSize="13sp" />
+        android:textColor="#E9E5D3"
+        android:textSize="14sp" />
 
     <TextView
         android:id="@+id/itemImportantMark"
@@ -46,18 +46,24 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
         android:text="!"
-        android:textColor="#E67E80"
+        android:textColor="#E5A6A7"
         android:textStyle="bold"
         android:visibility="gone" />
 
-    <TextView
+    <FrameLayout
         android:id="@+id/itemDelete"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:layout_marginStart="6dp"
-        android:gravity="center"
-        android:text="✕"
-        android:textColor="#859289"
-        android:textSize="13sp" />
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="4dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="✕"
+            android:textColor="#9BA6A0"
+            android:textSize="13sp" />
+
+    </FrameLayout>
 
 </LinearLayout>

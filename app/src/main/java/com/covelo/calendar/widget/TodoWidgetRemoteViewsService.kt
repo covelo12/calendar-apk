@@ -41,23 +41,30 @@ private class TodoWidgetFactory(private val context: android.content.Context) : 
         val views = RemoteViews(context.packageName, R.layout.widget_todo_item)
 
         views.setTextViewText(R.id.todoTitle, item.title)
-        views.setFloat(R.id.todoTitle, "setAlpha", if (item.completed) 0.5f else 1f)
-        views.setInt(
-            R.id.todoCheckbox, "setBackgroundResource",
-            if (item.completed) R.drawable.widget_checkbox_on else R.drawable.widget_checkbox_off
+        views.setFloat(R.id.todoTitle, "setAlpha", if (item.completed) 0.6f else 1f)
+
+        // The checkbox ring/fill is tinted to the task's own category color instead of a
+        // flat neutral grey — one shape now carries both "is this done" and "what category
+        // is this", matching the web app's TaskRow. The check glyph is a separate, fixed-white
+        // overlay so it stays legible against whatever color fills the circle underneath.
+        val categoryColor = parseColor(item.color)
+        views.setImageViewResource(
+            R.id.todoCheckboxCircle,
+            if (item.completed) R.drawable.widget_checkbox_fill else R.drawable.widget_checkbox_ring
         )
-        views.setTextViewText(R.id.todoCheckbox, if (item.completed) "✓" else "")
+        views.setInt(R.id.todoCheckboxCircle, "setColorFilter", categoryColor)
+        views.setViewVisibility(R.id.todoCheckMark, if (item.completed) android.view.View.VISIBLE else android.view.View.GONE)
 
         val dueLabel = item.dueLabel
         views.setViewVisibility(R.id.todoDueLabel, if (dueLabel != null) android.view.View.VISIBLE else android.view.View.GONE)
         if (dueLabel != null) {
             views.setTextViewText(R.id.todoDueLabel, dueLabel)
-            views.setTextColor(R.id.todoDueLabel, if (dueLabel == "Overdue") Color.parseColor("#E67E80") else Color.parseColor("#859289"))
+            views.setTextColor(R.id.todoDueLabel, if (dueLabel == "Overdue") Color.parseColor("#E5A6A7") else Color.parseColor("#9BA6A0"))
         }
         if (item.important && !item.completed) {
-            views.setTextColor(R.id.todoTitle, Color.parseColor("#E67E80"))
+            views.setTextColor(R.id.todoTitle, Color.parseColor("#E5A6A7"))
         } else {
-            views.setTextColor(R.id.todoTitle, Color.parseColor("#D3C6AA"))
+            views.setTextColor(R.id.todoTitle, Color.parseColor("#E9E5D3"))
         }
 
         val toggleIntent = Intent().apply {
@@ -74,5 +81,11 @@ private class TodoWidgetFactory(private val context: android.content.Context) : 
         views.setOnClickFillInIntent(R.id.todoDelete, deleteIntent)
 
         return views
+    }
+
+    private fun parseColor(hex: String): Int = try {
+        Color.parseColor(hex)
+    } catch (e: IllegalArgumentException) {
+        Color.parseColor("#7FBBB3")
     }
 }
