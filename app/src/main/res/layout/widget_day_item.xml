@@ -47,4 +47,14 @@
         android:textStyle="bold"
         android:visibility="gone" />
 
+    <TextView
+        android:id="@+id/itemDelete"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginStart="6dp"
+        android:gravity="center"
+        android:text="✕"
+        android:textColor="#859289"
+        android:textSize="13sp" />
+
 </LinearLayout>

@@ -9,6 +9,7 @@ import java.time.ZoneId
 
 data class WidgetItem(
     val id: String,
+    val eventId: String, // the real server/cache id — always the deletable target, unlike `id`
     val sortKey: String, // "00:00" style, or "0" for all-day/undated so it sorts first
     val timeLabel: String,
     val title: String,
@@ -39,6 +40,7 @@ object WidgetItems {
                 } ?: continue
                 items += WidgetItem(
                     id = "${event.id}-$role",
+                    eventId = event.id,
                     sortKey = "0",
                     timeLabel = role,
                     title = event.title,
@@ -51,6 +53,7 @@ object WidgetItems {
                 val timeLabel = if (event.allDay || event.startTime.isNullOrBlank()) "All day" else event.startTime
                 items += WidgetItem(
                     id = event.id,
+                    eventId = event.id,
                     sortKey = if (event.allDay || event.startTime.isNullOrBlank()) "0" else event.startTime,
                     timeLabel = timeLabel,
                     title = event.title,

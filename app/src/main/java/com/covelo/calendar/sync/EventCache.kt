@@ -124,4 +124,21 @@ object EventCache {
         saveAll(context, current)
         return current
     }
+
+    /** Adds or replaces one event in the local cache immediately — used by the widget's quick-add
+     * so the new event shows up right away, without waiting for the next periodic sync. */
+    @Synchronized
+    fun upsertLocal(context: Context, event: CachedEvent) {
+        val current = loadAll(context).toMutableMap()
+        current[event.id] = event
+        saveAll(context, current)
+    }
+
+    /** Removes one event from the local cache immediately — used by the widget's delete action. */
+    @Synchronized
+    fun removeLocal(context: Context, id: String) {
+        val current = loadAll(context).toMutableMap()
+        current.remove(id)
+        saveAll(context, current)
+    }
 }

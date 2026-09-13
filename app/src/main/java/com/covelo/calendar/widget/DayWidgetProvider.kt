@@ -46,13 +46,28 @@ class DayWidgetProvider : AppWidgetProvider() {
             views.setRemoteAdapter(R.id.widgetList, serviceIntent)
             views.setEmptyView(R.id.widgetList, R.id.widgetEmptyText)
 
-            val openAppIntent = Intent(context, MainActivity::class.java)
+            // RemoteViews only allows one PendingIntent template per collection view, so every
+            // row tap (open vs. delete) funnels through WidgetActionReceiver, which branches on
+            // an extra merged in per-item by DayWidgetRemoteViewsService (see EXTRA_WIDGET_ACTION).
+            val actionPendingIntent = PendingIntent.getBroadcast(
+                context, appWidgetId, Intent(context, WidgetActionReceiver::class.java),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+            )
+            views.setPendingIntentTemplate(R.id.widgetList, actionPendingIntent)
+
             val openAppPendingIntent = PendingIntent.getActivity(
-                context, appWidgetId, openAppIntent,
+                context, appWidgetId, Intent(context, MainActivity::class.java),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
-            views.setPendingIntentTemplate(R.id.widgetList, openAppPendingIntent)
             views.setOnClickPendingIntent(R.id.widgetDateLabel, openAppPendingIntent)
+
+            val quickAddPendingIntent = PendingIntent.getActivity(
+                context, appWidgetId + 1_000_000, Intent(context, QuickAddActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                },
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.widgetAddButton, quickAddPendingIntent)
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

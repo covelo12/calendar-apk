@@ -38,8 +38,17 @@ private class DayWidgetFactory(private val context: android.content.Context) : R
         views.setViewVisibility(R.id.itemImportantMark, if (item.important) android.view.View.VISIBLE else android.view.View.GONE)
         views.setFloat(R.id.itemTitle, "setAlpha", if (item.completed) 0.5f else 1f)
 
-        val fillInIntent = Intent()
-        views.setOnClickFillInIntent(R.id.itemTitle, fillInIntent)
+        val openIntent = Intent().apply {
+            putExtra(WidgetActionReceiver.EXTRA_WIDGET_ACTION, WidgetActionReceiver.ACTION_OPEN)
+        }
+        views.setOnClickFillInIntent(R.id.itemTitle, openIntent)
+        views.setOnClickFillInIntent(R.id.itemTime, openIntent)
+
+        val deleteIntent = Intent().apply {
+            putExtra(WidgetActionReceiver.EXTRA_WIDGET_ACTION, WidgetActionReceiver.ACTION_DELETE)
+            putExtra(WidgetActionReceiver.EXTRA_EVENT_ID, item.eventId)
+        }
+        views.setOnClickFillInIntent(R.id.itemDelete, deleteIntent)
 
         return views
     }
