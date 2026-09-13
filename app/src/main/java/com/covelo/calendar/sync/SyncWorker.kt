@@ -52,6 +52,9 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
             TodoWidgetProvider.updateAll(applicationContext)
             ProgressWidgetProvider.updateAll(applicationContext)
             android.util.Log.i(TAG, "Sync ok: ${events.length()} rows, incremental=${since != null}, cursor=$cursor")
+            // Only worth waking the UI when something actually came back — otherwise every idle
+            // 15-minute tick would make the WebView re-fetch for nothing.
+            if (events.length() > 0) DataChangeNotifier.broadcast(applicationContext)
             Result.success()
         } catch (e: Exception) {
             // Silence here is what let a completely dead sync look healthy for so long.

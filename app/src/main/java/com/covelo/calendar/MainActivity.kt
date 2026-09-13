@@ -2,14 +2,17 @@ package com.covelo.calendar
 
 import android.Manifest
 import android.app.AlarmManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
+import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -18,8 +21,11 @@ import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import com.covelo.calendar.auth.Prefs
+import com.covelo.calendar.sync.DataChangeNotifier
+import com.covelo.calendar.sync.SyncWorker
 
 /**
  * WebView shell over the deployed PWA — this gets 100% UI parity with the web app for free
@@ -27,10 +33,45 @@ import com.covelo.calendar.auth.Prefs
  * running independently of whatever's happening inside this WebView.
  */
 class MainActivity : AppCompatActivity() {
+    private companion object {
+        const val TAG = "CalendarShell"
+    }
+
     private lateinit var webView: WebView
 
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
+    /** Fires when a native sync brought new data down, so the page can show it right away
+     * instead of waiting out its own 60-second poll. */
+    private val dataChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            // The web app already re-pulls whenever its window regains focus, so reuse that
+            // rather than making the page expose a bespoke hook — this then also works against
+            // whatever build of the PWA happens to be deployed right now.
+            webView.evaluateJavascript(
+                "window.dispatchEvent(new Event('focus')); typeof window.AndroidSync?.requestSync"
+            ) { result -> android.util.Log.i(TAG, "Nudged WebView to re-pull (bridge=$result)") }
+        }
+    }
+
+    /** Lets the page ask for an immediate sync after it writes something, so the widgets stop
+     * waiting up to 15 minutes for the next periodic tick to notice. Deliberately takes no
+     * arguments and returns nothing: the whole surface is "please sync my own data, now". */
+    private inner class SyncBridge {
+        @JavascriptInterface
+        fun requestSync() {
+            runOnUiThread {
+                // A WebView follows any link it is given, so confirm we are still on our own
+                // page before honouring this — a JavascriptInterface is reachable by whatever
+                // happens to be loaded.
+                val url = webView.url ?: return@runOnUiThread
+                if (!url.startsWith(BuildConfig.PWA_URL)) return@runOnUiThread
+                android.util.Log.i(TAG, "Page asked for an immediate sync")
+                SyncWorker.enqueueOneOff(this@MainActivity)
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +105,23 @@ class MainActivity : AppCompatActivity() {
                 progressBar.visibility = if (newProgress >= 100) android.view.View.GONE else android.view.View.VISIBLE
             }
         }
+        webView.addJavascriptInterface(SyncBridge(), "AndroidSync")
         webView.loadUrl(BuildConfig.PWA_URL)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        ContextCompat.registerReceiver(
+            this,
+            dataChangeReceiver,
+            IntentFilter(DataChangeNotifier.ACTION),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(dataChangeReceiver)
     }
 
     override fun onBackPressed() {
