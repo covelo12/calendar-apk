@@ -31,7 +31,10 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
             val since = Prefs.lastSync(applicationContext)
             val path = if (since != null) "/events?since=${java.net.URLEncoder.encode(since, "UTF-8")}" else "/events"
             val result = ApiClient.authedRequest(applicationContext, path)
-            if (result.statusCode != 200) return Result.retry()
+            if (result.statusCode != 200) {
+                android.util.Log.e(TAG, "Sync failed: HTTP ${result.statusCode} ${result.body.take(200)}")
+                return Result.retry()
+            }
 
             val payload = JSONObject(result.body)
             val events = payload.getJSONArray("events")
@@ -47,8 +50,11 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
             DayWidgetProvider.updateAll(applicationContext)
             TodoWidgetProvider.updateAll(applicationContext)
             ProgressWidgetProvider.updateAll(applicationContext)
+            android.util.Log.i(TAG, "Sync ok: ${events.length()} rows, incremental=${since != null}, cursor=$cursor")
             Result.success()
         } catch (e: Exception) {
+            // Silence here is what let a completely dead sync look healthy for so long.
+            android.util.Log.e(TAG, "Sync threw", e)
             Result.retry()
         }
     }
@@ -63,14 +69,19 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
                 val res = ApiClient.authedRequest(applicationContext, "/events/$id", "DELETE")
                 if (res.statusCode in 200..299 || res.statusCode == 404) {
                     Prefs.removePendingDelete(applicationContext, id)
+                    android.util.Log.i(TAG, "Pending delete confirmed: $id")
+                } else {
+                    android.util.Log.e(TAG, "Pending delete $id failed: HTTP ${res.statusCode}")
                 }
             } catch (e: Exception) {
-                // Leave it pending; the next periodic tick tries again.
+                // Leave it pending; the next tick tries again.
+                android.util.Log.e(TAG, "Pending delete $id threw", e)
             }
         }
     }
 
     companion object {
+        private const val TAG = "SyncWorker"
         private const val PERIODIC_WORK_NAME = "calendar_sync_periodic"
         private const val ONE_OFF_WORK_NAME = "calendar_sync_one_off"
 

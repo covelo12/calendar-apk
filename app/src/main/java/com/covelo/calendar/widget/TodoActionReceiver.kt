@@ -8,6 +8,7 @@ import com.covelo.calendar.alert.AlertScheduler
 import com.covelo.calendar.auth.ApiClient
 import com.covelo.calendar.auth.Prefs
 import com.covelo.calendar.sync.EventCache
+import com.covelo.calendar.sync.SyncWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -62,7 +63,6 @@ class TodoActionReceiver : BroadcastReceiver() {
     private fun deleteTask(context: Context, taskId: String) {
         val pending = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
-            var failed = false
             try {
                 EventCache.removeLocal(context, taskId)
                 Prefs.addPendingDelete(context, taskId)
@@ -70,19 +70,9 @@ class TodoActionReceiver : BroadcastReceiver() {
                 ProgressWidgetProvider.updateAll(context)
                 AlertScheduler.rescheduleAll(context)
                 DayWidgetProvider.updateAll(context)
-                val res = ApiClient.authedRequest(context, "/events/$taskId", "DELETE")
-                failed = res.statusCode !in 200..299 && res.statusCode != 404
-                if (!failed) Prefs.removePendingDelete(context, taskId)
-                if (failed) android.util.Log.e("TodoAction", "Delete failed: HTTP ${res.statusCode} ${res.body}")
-            } catch (e: Exception) {
-                failed = true
-                android.util.Log.e("TodoAction", "Delete threw", e)
+                // Handed to SyncWorker rather than called here — see WidgetActionReceiver.
+                SyncWorker.enqueueOneOff(context)
             } finally {
-                if (failed) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "Delete failed — will retry next sync", Toast.LENGTH_SHORT).show()
-                    }
-                }
                 pending.finish()
             }
         }

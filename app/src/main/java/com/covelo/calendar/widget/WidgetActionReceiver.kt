@@ -3,16 +3,14 @@ package com.covelo.calendar.widget
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.widget.Toast
 import com.covelo.calendar.MainActivity
 import com.covelo.calendar.alert.AlertScheduler
-import com.covelo.calendar.auth.ApiClient
 import com.covelo.calendar.auth.Prefs
 import com.covelo.calendar.sync.EventCache
+import com.covelo.calendar.sync.SyncWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * Single target for every tap inside the widget's event list (RemoteViews only allows one
@@ -32,25 +30,21 @@ class WidgetActionReceiver : BroadcastReceiver() {
                 val eventId = intent.getStringExtra(EXTRA_EVENT_ID) ?: return
                 val pending = goAsync()
                 CoroutineScope(Dispatchers.IO).launch {
-                    var failed = false
                     try {
                         EventCache.removeLocal(context, eventId)
                         Prefs.addPendingDelete(context, eventId)
                         AlertScheduler.rescheduleAll(context)
                         DayWidgetProvider.updateAll(context)
-                        val res = ApiClient.authedRequest(context, "/events/$eventId", "DELETE")
-                        failed = res.statusCode !in 200..299 && res.statusCode != 404
-                        if (!failed) Prefs.removePendingDelete(context, eventId)
-                        if (failed) android.util.Log.e("WidgetAction", "Delete failed: HTTP ${res.statusCode} ${res.body}")
-                    } catch (e: Exception) {
-                        failed = true
-                        android.util.Log.e("WidgetAction", "Delete threw", e)
+                        TodoWidgetProvider.updateAll(context)
+                        ProgressWidgetProvider.updateAll(context)
+                        // The DELETE deliberately does NOT happen here. This process can be killed
+                        // as soon as onReceive returns, and the call can need several round trips
+                        // (the server's session store is in-memory, so a redeploy forces a full
+                        // re-auth first) against a host that cold-starts — reliably longer than a
+                        // receiver survives, which is why deleting from the widget kept failing.
+                        // SyncWorker owns the retry and has a real execution window.
+                        SyncWorker.enqueueOneOff(context)
                     } finally {
-                        if (failed) {
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(context, "Delete failed — will retry next sync", Toast.LENGTH_SHORT).show()
-                            }
-                        }
                         pending.finish()
                     }
                 }
