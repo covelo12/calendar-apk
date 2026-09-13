@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Calendar</string>
+    <string name="device_setup">Device Setup</string>
+    <string name="action_device_setup">Device setup</string>
+    <string name="action_sync_now">Sync now</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="snooze">Snooze 5 min</string>
+</resources>

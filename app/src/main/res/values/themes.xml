@@ -1,0 +1,11 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.Calendar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#7FBBB3</item>
+        <item name="colorPrimaryDark">#5A8A83</item>
+        <item name="colorAccent">#A7C080</item>
+    </style>
+
+    <style name="Theme.Calendar.Alarm" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+</resources>
