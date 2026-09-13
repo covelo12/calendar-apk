@@ -33,9 +33,15 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
             val result = ApiClient.authedRequest(applicationContext, path)
             if (result.statusCode != 200) return Result.retry()
 
-            val events = JSONObject(result.body).getJSONArray("events")
+            val payload = JSONObject(result.body)
+            val events = payload.getJSONArray("events")
             EventCache.applyServerEvents(applicationContext, events, isIncremental = since != null)
-            Prefs.saveLastSync(applicationContext, Instant.now().toString())
+            // Prefer the cursor the server hands back: it's in the server's own clock and in the
+            // exact format the updated_at values it gets compared against are written in. A cursor
+            // taken from this device's clock instead can silently narrow the next sync to nothing
+            // if the two disagree on either — which is precisely how this sync broke before.
+            val cursor = payload.optString("syncedAt").ifBlank { Instant.now().toString() }
+            Prefs.saveLastSync(applicationContext, cursor)
 
             AlertScheduler.rescheduleAll(applicationContext)
             DayWidgetProvider.updateAll(applicationContext)
