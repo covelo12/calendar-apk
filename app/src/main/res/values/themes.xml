@@ -4,6 +4,13 @@
         <item name="colorPrimaryDark">#5A8A83</item>
         <item name="colorAccent">#A7C080</item>
         <item name="materialButtonStyle">@style/Widget.Calendar.Button</item>
+        <!-- colorPrimaryDark (teal) was tinting the status bar by default, producing a hard
+             teal stripe above the app's own charcoal surface that belongs to no element —
+             transparent lets the app run edge-to-edge behind it instead. Status bar icons stay
+             light (default for a dark theme, no windowLightStatusBar set), which reads fine
+             against the app's own dark background showing through. -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
 
     <style name="Theme.Calendar.Alarm" parent="Theme.MaterialComponents.DayNight.NoActionBar">
@@ -18,9 +25,17 @@
     <style name="Theme.Calendar.QuickAdd" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:windowBackground">@color/quick_add_backdrop</item>
         <item name="materialButtonStyle">@style/Widget.Calendar.Button</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
 
+    <!-- android:textAllCaps alone left MaterialButton's default wide letterSpacing in place —
+         next to a plain-TextView title with none, "Cancel"/"Add" read like they came from a
+         different app. cornerRadius unifies buttons with the text field's own radius so the
+         card doesn't mix three different corner radii (card/field/button). -->
     <style name="Widget.Calendar.Button" parent="Widget.MaterialComponents.Button">
         <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="cornerRadius">12dp</item>
     </style>
 </resources>

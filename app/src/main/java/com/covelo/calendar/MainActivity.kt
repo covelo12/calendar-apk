@@ -11,12 +11,13 @@ import android.provider.Settings
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
 import com.covelo.calendar.auth.Prefs
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 /**
  * WebView shell over the deployed PWA — this gets 100% UI parity with the web app for free
@@ -31,6 +32,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Transparent statusBarColor (Theme.Calendar) alone isn't enough — without this the
+        // system still reserves/insets the status bar area and paints it black by default
+        // rather than letting the WebView's own surface draw underneath it.
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_main)
 
         if (!Prefs.isEnrolled(this)) {
@@ -40,7 +45,7 @@ class MainActivity : AppCompatActivity() {
         requestNotificationPermissionIfNeeded()
         promptExactAlarmPermissionIfNeeded()
 
-        findViewById<FloatingActionButton>(R.id.deviceSetupFab).setOnClickListener {
+        findViewById<ImageButton>(R.id.deviceSetupFab).setOnClickListener {
             startActivity(Intent(this, EnrollmentActivity::class.java))
         }
 

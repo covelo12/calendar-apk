@@ -35,6 +35,12 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="16dp" />
 
+            <!-- helperTextEnabled/errorEnabled=false so the outlined box doesn't reserve its
+                 usual space below the field for text neither is ever shown here — that
+                 reserved space plus the 2-line allowance was most of why this field measured
+                 well past what one line of text needs. boxCornerRadius matches the buttons
+                 below (12dp) instead of Material's own default, so the card doesn't mix three
+                 unrelated corner radii. -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/quickAddTitleLayout"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -42,7 +48,13 @@
                 android:layout_height="wrap_content"
                 android:hint="Title"
                 android:textColorHint="#859289"
+                app:boxCornerRadiusBottomEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusTopStart="12dp"
                 app:boxStrokeColor="#7FBBB3"
+                app:errorEnabled="false"
+                app:helperTextEnabled="false"
                 app:hintTextColor="#7FBBB3">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -51,7 +63,7 @@
                     android:layout_height="wrap_content"
                     android:imeOptions="actionDone"
                     android:inputType="text"
-                    android:maxLines="2"
+                    android:maxLines="1"
                     android:textColor="#E9E5D3"
                     android:textSize="16sp" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -68,9 +80,11 @@
                     style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:letterSpacing="0"
                     android:text="Cancel"
                     android:textAllCaps="false"
-                    android:textColor="#859289" />
+                    android:textColor="#859289"
+                    app:cornerRadius="12dp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/quickAddSave"
