@@ -1,6 +1,7 @@
 package com.covelo.calendar.widget
 
 import android.os.Bundle
+import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -28,15 +29,17 @@ class QuickAddActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setTheme(R.style.Theme_Calendar_Dialog)
         // Launched via FLAG_ACTIVITY_NEW_TASK from a widget PendingIntent (no existing task to
         // attach to) — on modern Android/OEM launchers that triggers a full "opening app" task
-        // transition (app icon + label card) sized for a normal fullscreen activity, which never
-        // gets fully covered by this small floating dialog and is left showing behind it.
-        // Disabling the transition entirely (rather than trying to theme it) is what actually
-        // removes it — confirmed on Android 16 (windowDisablePreview alone does not).
-        @Suppress("DEPRECATION")
-        overridePendingTransition(0, 0)
+        // transition (app icon + label card) sized for a normal fullscreen activity. A floating/
+        // translucent dialog theme (Theme.Calendar.Dialog) never fully covers that card, leaving
+        // it visible behind the small dialog — confirmed on Android 16; neither
+        // windowDisablePreview nor overridePendingTransition(0, 0) fixes it (both are window-
+        // transition mechanisms, and the transition here is the launcher's, not ours).
+        // Theme.Calendar.QuickAdd instead is a normal opaque fullscreen activity, so it gets the
+        // launcher's regular full-activity transition — the dialog look is faked entirely in the
+        // layout (backdrop + centered card), same as the web app's EventModal.
+        setTheme(R.style.Theme_Calendar_QuickAdd)
         setContentView(R.layout.activity_quick_add)
 
         kind = intent.getStringExtra(EXTRA_KIND) ?: "event"
@@ -48,6 +51,9 @@ class QuickAddActivity : AppCompatActivity() {
 
         val titleInput = findViewById<TextInputEditText>(R.id.quickAddTitle)
         titleInput.requestFocus()
+
+        // Replicates a dialog's tap-outside-to-dismiss now that the window itself is fullscreen.
+        findViewById<FrameLayout>(R.id.quickAddRoot).setOnClickListener { finish() }
 
         findViewById<MaterialButton>(R.id.quickAddCancel).setOnClickListener { finish() }
         findViewById<MaterialButton>(R.id.quickAddSave).setOnClickListener {

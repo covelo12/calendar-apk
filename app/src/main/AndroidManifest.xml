@@ -46,7 +46,7 @@
             android:name=".widget.QuickAddActivity"
             android:exported="false"
             android:excludeFromRecents="true"
-            android:theme="@style/Theme.Calendar.Dialog" />
+            android:theme="@style/Theme.Calendar.QuickAdd" />
 
         <receiver
             android:name=".alert.AlarmReceiver"

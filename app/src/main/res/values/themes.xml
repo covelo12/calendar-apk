@@ -10,11 +10,13 @@
         <item name="android:windowBackground">@android:color/black</item>
     </style>
 
-    <style name="Theme.Calendar.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog">
-        <item name="android:windowIsFloating">true</item>
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowDisablePreview">true</item>
-        <item name="android:windowAnimationStyle">@null</item>
+    <!-- A normal opaque fullscreen activity, not a floating/translucent dialog window — a
+         floating dialog theme's window-level translucency left the OEM launcher's task-open
+         transition card showing behind it on Android 16 (see QuickAddActivity's doc comment).
+         The dialog look here is faked entirely in the layout (a solid backdrop + centered
+         card), same as the web app's EventModal pattern. -->
+    <style name="Theme.Calendar.QuickAdd" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/quick_add_backdrop</item>
         <item name="materialButtonStyle">@style/Widget.Calendar.Button</item>
     </style>
 

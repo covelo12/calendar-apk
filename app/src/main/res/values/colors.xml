@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Opaque backdrop for QuickAddActivity — see Theme.Calendar.QuickAdd. Must stay fully
+         opaque (alpha FF): the window itself is non-translucent on purpose. -->
+    <color name="quick_add_backdrop">#1E2326</color>
+</resources>
