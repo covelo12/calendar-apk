@@ -80,5 +80,25 @@
             android:name=".widget.WidgetActionReceiver"
             android:exported="false" />
 
+        <receiver
+            android:name=".widget.TodoWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_todo_info" />
+        </receiver>
+
+        <service
+            android:name=".widget.TodoWidgetRemoteViewsService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+
+        <receiver
+            android:name=".widget.TodoActionReceiver"
+            android:exported="false" />
+
     </application>
 </manifest>

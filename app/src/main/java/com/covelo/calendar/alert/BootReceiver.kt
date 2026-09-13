@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import com.covelo.calendar.sync.SyncWorker
 import com.covelo.calendar.widget.DayWidgetProvider
+import com.covelo.calendar.widget.TodoWidgetProvider
 
 /** All AlarmManager alarms are wiped on reboot (handoff §6) — reschedule immediately from the
  * local cache, then kick off a fresh sync in case events changed while the phone was off. */
@@ -13,6 +14,7 @@ class BootReceiver : BroadcastReceiver() {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
         AlertScheduler.rescheduleAll(context)
         DayWidgetProvider.updateAll(context)
+        TodoWidgetProvider.updateAll(context)
         SyncWorker.enqueueOneOff(context)
     }
 }
