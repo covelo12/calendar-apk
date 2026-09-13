@@ -2,11 +2,13 @@ package com.covelo.calendar
 
 import android.Manifest
 import android.app.AlarmManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
 import android.provider.Settings
 import android.webkit.WebChromeClient
 import android.webkit.WebView
@@ -44,6 +46,7 @@ class MainActivity : AppCompatActivity() {
 
         requestNotificationPermissionIfNeeded()
         promptExactAlarmPermissionIfNeeded()
+        promptBatteryOptimizationExemptionIfNeeded()
 
         findViewById<ImageButton>(R.id.deviceSetupFab).setOnClickListener {
             startActivity(Intent(this, EnrollmentActivity::class.java))
@@ -83,6 +86,23 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Grant \"Alarms & reminders\" so important alerts ring on time", Toast.LENGTH_LONG).show()
                 startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:$packageName")))
             }
+        }
+    }
+
+    /** OEM battery managers (Samsung's "Put unused apps to sleep" / Freecess in particular) can
+     * freeze this app's process in the background hard enough that the periodic sync job and a
+     * widget delete's goAsync() coroutine never get to finish their network call — the sync silently
+     * goes stale and a delete looks "stuck" (removed from the widget, never actually gone on the
+     * server). Being on the OS's battery-optimization allowlist is what stops that freezing. */
+    private fun promptBatteryOptimizationExemptionIfNeeded() {
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
+            Toast.makeText(
+                this,
+                "Allow unrestricted battery use so sync and reminders don't get delayed",
+                Toast.LENGTH_LONG
+            ).show()
+            startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName")))
         }
     }
 }
