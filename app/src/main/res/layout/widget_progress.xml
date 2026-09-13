@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "How many tasks did I do / how many are left" as its own compact widget — a horizontal
+     progress bar rather than the web app's circular ring or literal vertical "wells": RemoteViews
+     has no reliable way to style a determinate circular ProgressBar consistently across OEM
+     launchers, and a plain ImageView height trick for two "well" bars turned out fragile in
+     testing, so this uses ProgressBar (natively supported by RemoteViews via setProgress) with
+     its progressDrawable tinted to the accent color. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_card_bg"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center_vertical">
+
+    <TextView
+        android:id="@+id/progressCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#F1EEE3"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_marginTop="10dp"
+        android:max="100"
+        android:progressTint="#A7C080"
+        android:progressBackgroundTint="#384047" />
+
+    <TextView
+        android:id="@+id/progressSubtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="#9BA6A0"
+        android:textSize="12sp" />
+
+</LinearLayout>

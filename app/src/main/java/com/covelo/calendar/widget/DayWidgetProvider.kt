@@ -10,7 +10,6 @@ import com.covelo.calendar.MainActivity
 import com.covelo.calendar.R
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -35,8 +34,10 @@ class DayWidgetProvider : AppWidgetProvider() {
 
             val zone = ZoneId.of(com.covelo.calendar.BuildConfig.SERVER_TIME_ZONE)
             val today = LocalDate.now(zone)
-            val label = "${today.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())}, " +
-                today.format(DateTimeFormatter.ofPattern("d MMM"))
+            // Weekday + month only, no day number — the widget already shows today's date
+            // implicitly (it's "today's" widget); the number added nothing but clutter here.
+            val label = "${today.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())}, " +
+                today.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
             views.setTextViewText(R.id.widgetDateLabel, label)
 
             val serviceIntent = Intent(context, DayWidgetRemoteViewsService::class.java).apply {

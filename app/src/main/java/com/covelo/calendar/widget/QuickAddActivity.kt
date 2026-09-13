@@ -94,6 +94,7 @@ class QuickAddActivity : AppCompatActivity() {
         AlertScheduler.rescheduleAll(this)
         DayWidgetProvider.updateAll(this)
         TodoWidgetProvider.updateAll(this)
+        ProgressWidgetProvider.updateAll(this)
         Toast.makeText(this, "Added", Toast.LENGTH_SHORT).show()
         finish()
 

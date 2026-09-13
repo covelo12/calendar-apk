@@ -6,6 +6,9 @@ import com.covelo.calendar.sync.CachedEvent
 import com.covelo.calendar.sync.EventCache
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 
 data class WidgetItem(
     val id: String,
@@ -15,31 +18,70 @@ data class WidgetItem(
     val title: String,
     val color: String,
     val important: Boolean,
-    val completed: Boolean
+    val completed: Boolean,
+    /** A plain section-label row ("Tomorrow, Sep 14") rather than an actual event/task — lets
+     * the widget read as a short two-day agenda instead of "just today", without needing a
+     * second RemoteViewsFactory/provider. */
+    val isHeader: Boolean = false
 )
 
-/** Builds "what's on today" for the home screen widget from the same local cache the alert
- * scheduler reads — a day-view-style list, not a full calendar render (handoff's WebView owns
- * that). Kept deliberately simple: one row per event/task role due today, no recurrence
- * expansion (matches the alert engine's own scope, see handoff §5). */
+/** Builds a short agenda for the home screen widget from the same local cache the alert
+ * scheduler reads — day-view-style rows, not a full calendar render (handoff's WebView owns
+ * that). One row per event/task role due that day, including recurring events/tasks via
+ * RecurrenceUtil (previously only the literal anchor date matched, so a daily/weekly item only
+ * ever showed up on the day it was created). */
 object WidgetItems {
-    fun today(context: Context): List<WidgetItem> {
+    private val MONTH_DAY = DateTimeFormatter.ofPattern("MMM d")
+
+    /** Today's items, followed by a "Tomorrow" header + tomorrow's items when there are any —
+     * this is the "more like a calendar, see the next day" agenda view. */
+    fun agenda(context: Context): List<WidgetItem> {
         val zone = ZoneId.of(BuildConfig.SERVER_TIME_ZONE)
-        val today = LocalDate.now(zone).toString()
+        val todayDate = LocalDate.now(zone)
+        val tomorrowDate = todayDate.plusDays(1)
         val events = EventCache.loadAll(context).values
 
+        val todayItems = forDate(events, todayDate)
+        val tomorrowItems = forDate(events, tomorrowDate)
+        if (tomorrowItems.isEmpty()) return todayItems
+
+        val dayName = tomorrowDate.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
+        val header = WidgetItem(
+            id = "header-tomorrow",
+            eventId = "",
+            sortKey = "",
+            timeLabel = "",
+            title = "$dayName, ${tomorrowDate.format(MONTH_DAY)}",
+            color = "#7A8478",
+            important = false,
+            completed = false,
+            isHeader = true
+        )
+        return todayItems + header + tomorrowItems
+    }
+
+    private fun forDate(events: Collection<CachedEvent>, date: LocalDate): List<WidgetItem> {
+        val dateStr = date.toString()
         val items = mutableListOf<WidgetItem>()
+
         for (event in events) {
             val important = event.alertStyle == "alarm"
             if (event.kind == "task") {
-                val role = when (today) {
-                    event.date -> "Do"
-                    event.dueDate -> "Due"
-                    event.startDate -> "Start"
+                // A recurring task's "do" date is the one role that repeats — start/due stay
+                // fixed, single points regardless of recurrence (matches the web app's own
+                // expandTaskOccurrences split between recurring "do" and fixed markers).
+                val doesRecur = event.date?.let { anchor ->
+                    runCatching { RecurrenceUtil.occursOn(event.recurringRaw, LocalDate.parse(anchor), date) }.getOrDefault(false)
+                } ?: false
+                val role = when {
+                    dateStr == event.date -> "Do"
+                    doesRecur -> "Do"
+                    dateStr == event.dueDate -> "Due"
+                    dateStr == event.startDate -> "Start"
                     else -> null
                 } ?: continue
                 items += WidgetItem(
-                    id = "${event.id}-$role",
+                    id = "${event.id}-$role-$dateStr",
                     eventId = event.id,
                     sortKey = "0",
                     timeLabel = role,
@@ -49,10 +91,13 @@ object WidgetItems {
                     completed = event.completed
                 )
             } else {
-                if (event.date != today) continue
+                val occurs = dateStr == event.date || event.date?.let { anchor ->
+                    runCatching { RecurrenceUtil.occursOn(event.recurringRaw, LocalDate.parse(anchor), date) }.getOrDefault(false)
+                } == true
+                if (!occurs) continue
                 val timeLabel = if (event.allDay || event.startTime.isNullOrBlank()) "All day" else event.startTime
                 items += WidgetItem(
-                    id = event.id,
+                    id = "${event.id}-$dateStr",
                     eventId = event.id,
                     sortKey = if (event.allDay || event.startTime.isNullOrBlank()) "0" else event.startTime,
                     timeLabel = timeLabel,

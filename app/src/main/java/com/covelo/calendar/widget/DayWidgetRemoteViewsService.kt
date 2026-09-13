@@ -16,7 +16,7 @@ private class DayWidgetFactory(private val context: android.content.Context) : R
     override fun onCreate() {}
     override fun onDataSetChanged() {
         items = try {
-            WidgetItems.today(context)
+            WidgetItems.agenda(context)
         } catch (e: Exception) {
             // Any uncaught exception here leaves the widget stuck on its loading placeholder
             // forever, since the host never gets a valid view back — never let that happen.
@@ -27,16 +27,26 @@ private class DayWidgetFactory(private val context: android.content.Context) : R
     override fun onDestroy() {}
 
     override fun getCount(): Int = items.size
-    override fun getViewTypeCount(): Int = 1
+    // Two row types: a plain section header ("Tomorrow, Sep 14") and a normal event/task row.
+    // RemoteViewsFactory has no per-position getItemViewType — getViewAt returning one of two
+    // distinct layouts is what getViewTypeCount's "2" describes.
+    override fun getViewTypeCount(): Int = 2
     override fun getItemId(position: Int): Long = items[position].id.hashCode().toLong()
     override fun hasStableIds(): Boolean = true
     override fun getLoadingView(): RemoteViews? = null
 
     override fun getViewAt(position: Int): RemoteViews = try {
-        buildView(items[position])
+        val item = items[position]
+        if (item.isHeader) buildHeaderView(item) else buildView(item)
     } catch (e: Exception) {
         android.util.Log.e("DayWidget", "Failed to build row $position", e)
         RemoteViews(context.packageName, R.layout.widget_day_item)
+    }
+
+    private fun buildHeaderView(item: WidgetItem): RemoteViews {
+        val views = RemoteViews(context.packageName, R.layout.widget_day_header_item)
+        views.setTextViewText(R.id.headerLabel, item.title)
+        return views
     }
 
     private fun buildView(item: WidgetItem): RemoteViews {

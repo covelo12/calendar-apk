@@ -35,6 +35,7 @@ class TodoActionReceiver : BroadcastReceiver() {
                     val updated = current.copy(completed = !current.completed)
                     EventCache.upsertLocal(context, updated)
                     TodoWidgetProvider.updateAll(context)
+                    ProgressWidgetProvider.updateAll(context)
                     AlertScheduler.rescheduleAll(context)
                     DayWidgetProvider.updateAll(context)
 
@@ -64,6 +65,7 @@ class TodoActionReceiver : BroadcastReceiver() {
             try {
                 EventCache.removeLocal(context, taskId)
                 TodoWidgetProvider.updateAll(context)
+                ProgressWidgetProvider.updateAll(context)
                 AlertScheduler.rescheduleAll(context)
                 DayWidgetProvider.updateAll(context)
                 val res = ApiClient.authedRequest(context, "/events/$taskId", "DELETE")
