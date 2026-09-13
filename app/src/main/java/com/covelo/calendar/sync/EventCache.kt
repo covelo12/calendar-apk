@@ -157,10 +157,13 @@ object EventCache {
      * local delete whose DELETE request hasn't been confirmed yet) is skipped even if the server
      * still lists it as live — otherwise a delete that hasn't reached the server yet gets undone
      * by the very next sync bringing the "still there" server row back into the cache. Likewise
-     * an id in Prefs.pendingUpdates (the widget's toggle-complete, whose PUT hasn't been
-     * confirmed) keeps its pre-sync local value instead of being overwritten by the server's
-     * still-stale copy — otherwise a completed task could flip back to incomplete for one sync
-     * tick. Returns the merged cache.
+     * an id in Prefs.pendingUpdates (the widget's toggle-complete or quick-add, whose PUT hasn't
+     * been confirmed) keeps its pre-sync local value instead of being overwritten by the
+     * server's still-stale copy — otherwise a completed task could flip back to incomplete, or a
+     * just-created event vanish, for one sync tick. A pending id the server doesn't return at
+     * all (a create it hasn't received yet) is restored from the pre-sync cache after the loop —
+     * on a full sync `current` starts empty, so without this a not-yet-pushed create would be
+     * silently dropped instead of merely left unconfirmed. Returns the merged cache.
      */
     @Synchronized
     fun applyServerEvents(context: Context, serverEventsJson: JSONArray, isIncremental: Boolean): Map<String, CachedEvent> {
@@ -168,14 +171,19 @@ object EventCache {
         val current = if (isIncremental) before.toMutableMap() else mutableMapOf()
         val pendingDeletes = com.covelo.calendar.auth.Prefs.pendingDeletes(context)
         val pendingUpdates = com.covelo.calendar.auth.Prefs.pendingUpdates(context)
+        val seenIds = mutableSetOf<String>()
         for (i in 0 until serverEventsJson.length()) {
             val row = serverEventsJson.getJSONObject(i)
             val id = row.getString("id")
+            seenIds += id
             when {
                 id in pendingUpdates -> before[id]?.let { current[id] = it }
                 row.optBoolean("deleted", false) || id in pendingDeletes -> current.remove(id)
                 else -> current[id] = CachedEvent.fromServerJson(row)
             }
+        }
+        for (id in pendingUpdates) {
+            if (id !in seenIds) before[id]?.let { current[id] = it }
         }
         saveAll(context, current)
         return current

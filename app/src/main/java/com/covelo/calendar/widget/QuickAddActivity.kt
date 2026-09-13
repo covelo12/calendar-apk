@@ -5,18 +5,16 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import com.covelo.calendar.BuildConfig
 import com.covelo.calendar.R
 import com.covelo.calendar.alert.AlertScheduler
-import com.covelo.calendar.auth.ApiClient
+import com.covelo.calendar.auth.Prefs
 import com.covelo.calendar.sync.CachedEvent
 import com.covelo.calendar.sync.EventCache
+import com.covelo.calendar.sync.SyncWorker
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import kotlinx.coroutines.launch
-import org.json.JSONObject
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
@@ -91,24 +89,19 @@ class QuickAddActivity : AppCompatActivity() {
         )
         // Show it immediately — don't make the widget wait on the network round trip.
         EventCache.upsertLocal(this, cached)
+        Prefs.addPendingUpdate(this, id)
         AlertScheduler.rescheduleAll(this)
         DayWidgetProvider.updateAll(this)
         TodoWidgetProvider.updateAll(this)
         ProgressWidgetProvider.updateAll(this)
         Toast.makeText(this, "Added", Toast.LENGTH_SHORT).show()
+        // The PUT deliberately does NOT happen here. It used to run in lifecycleScope.launch{}
+        // started right before finish() — but finish() tears the activity down, which cancels
+        // lifecycleScope, so the network call routinely never completed: the event looked
+        // "added" locally and silently never reached the server. SyncWorker now owns the actual
+        // push via the same pendingUpdates queue the widget's toggle-complete uses.
+        SyncWorker.enqueueOneOff(this)
         finish()
-
-        val body = JSONObject().apply {
-            put("events", org.json.JSONArray().put(cached.toServerJson()))
-        }
-        lifecycleScope.launch {
-            try {
-                ApiClient.authedRequest(this@QuickAddActivity, "/events", "PUT", body.toString())
-            } catch (e: Exception) {
-                // Already visible locally; if the network call failed it'll look "added" here
-                // but missing on other devices until you retry (no offline write-queue yet).
-            }
-        }
     }
 
     companion object {
