@@ -41,9 +41,11 @@ class TodoActionReceiver : BroadcastReceiver() {
                     val body = JSONObject().apply { put("events", JSONArray().put(updated.toServerJson())) }
                     val res = ApiClient.authedRequest(context, "/events", "PUT", body.toString())
                     failed = res.statusCode !in 200..299
+                    if (failed) android.util.Log.e("TodoAction", "Toggle failed: HTTP ${res.statusCode} ${res.body}")
                 }
             } catch (e: Exception) {
                 failed = true
+                android.util.Log.e("TodoAction", "Toggle threw", e)
             } finally {
                 if (failed) {
                     withContext(Dispatchers.Main) {
@@ -66,8 +68,10 @@ class TodoActionReceiver : BroadcastReceiver() {
                 DayWidgetProvider.updateAll(context)
                 val res = ApiClient.authedRequest(context, "/events/$taskId", "DELETE")
                 failed = res.statusCode !in 200..299
+                if (failed) android.util.Log.e("TodoAction", "Delete failed: HTTP ${res.statusCode} ${res.body}")
             } catch (e: Exception) {
                 failed = true
+                android.util.Log.e("TodoAction", "Delete threw", e)
             } finally {
                 if (failed) {
                     withContext(Dispatchers.Main) {

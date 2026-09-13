@@ -7,7 +7,10 @@
     android:paddingTop="5dp"
     android:paddingBottom="5dp">
 
-    <View
+    <!-- RemoteViews only allows a fixed whitelist of view classes to inflate — a bare <View>
+         throws "Class not allowed to be inflated" and silently breaks the whole widget adapter
+         (it just shows "Loading..." forever with no visible error). ImageView is allowed. -->
+    <ImageView
         android:id="@+id/itemAccent"
         android:layout_width="4dp"
         android:layout_height="match_parent"

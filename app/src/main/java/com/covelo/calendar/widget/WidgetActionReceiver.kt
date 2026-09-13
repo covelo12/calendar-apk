@@ -38,8 +38,10 @@ class WidgetActionReceiver : BroadcastReceiver() {
                         DayWidgetProvider.updateAll(context)
                         val res = ApiClient.authedRequest(context, "/events/$eventId", "DELETE")
                         failed = res.statusCode !in 200..299
+                        if (failed) android.util.Log.e("WidgetAction", "Delete failed: HTTP ${res.statusCode} ${res.body}")
                     } catch (e: Exception) {
                         failed = true
+                        android.util.Log.e("WidgetAction", "Delete threw", e)
                     } finally {
                         if (failed) {
                             withContext(Dispatchers.Main) {
