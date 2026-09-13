@@ -28,7 +28,12 @@ object ApiClient {
         try {
             connection.requestMethod = method
             connection.connectTimeout = 15_000
-            connection.readTimeout = 15_000
+            // The server suspends itself when idle and the first request has to wake it, which
+            // regularly takes longer than 15s. The connection itself is accepted straight away
+            // by the host's proxy — it is the *response* that is slow — so only the read budget
+            // needs to be generous. At 15s a sync after any quiet spell timed out, failed, and
+            // went into WorkManager's backoff, turning one slow request into minutes of staleness.
+            connection.readTimeout = 60_000
             // Set unconditionally: left alone, HttpURLConnection labels a bodyless request
             // (a DELETE) `application/x-www-form-urlencoded` on its own, and the server rejected
             // that with a 415 before the route ran — which is what broke every widget delete.
