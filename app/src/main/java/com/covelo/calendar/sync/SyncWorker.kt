@@ -27,6 +27,7 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
 
         return try {
             retryPendingDeletes()
+            retryPendingUpdates()
 
             val since = Prefs.lastSync(applicationContext)
             val path = if (since != null) "/events?since=${java.net.URLEncoder.encode(since, "UTF-8")}" else "/events"
@@ -76,6 +77,32 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
             } catch (e: Exception) {
                 // Leave it pending; the next tick tries again.
                 android.util.Log.e(TAG, "Pending delete $id threw", e)
+            }
+        }
+    }
+
+    /** A widget toggle-complete whose PUT hasn't been confirmed yet — same shape as
+     * retryPendingDeletes, resending the locally cached row (which already holds the edited
+     * value) rather than reconstructing anything. */
+    private suspend fun retryPendingUpdates() {
+        for (id in Prefs.pendingUpdates(applicationContext)) {
+            try {
+                val cached = EventCache.loadAll(applicationContext)[id]
+                if (cached == null) {
+                    // Nothing local to resend (e.g. it was since deleted) — nothing to retry.
+                    Prefs.removePendingUpdate(applicationContext, id)
+                    continue
+                }
+                val body = JSONObject().apply { put("events", org.json.JSONArray().put(cached.toServerJson())) }
+                val res = ApiClient.authedRequest(applicationContext, "/events", "PUT", body.toString())
+                if (res.statusCode in 200..299) {
+                    Prefs.removePendingUpdate(applicationContext, id)
+                    android.util.Log.i(TAG, "Pending update confirmed: $id")
+                } else {
+                    android.util.Log.e(TAG, "Pending update $id failed: HTTP ${res.statusCode}")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Pending update $id threw", e)
             }
         }
     }

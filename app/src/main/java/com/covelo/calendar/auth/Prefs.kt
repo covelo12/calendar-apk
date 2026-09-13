@@ -13,6 +13,7 @@ object Prefs {
     private const val KEY_SESSION_EXPIRES = "session_expires"
     private const val KEY_LAST_SYNC = "last_sync"
     private const val KEY_PENDING_DELETES = "pending_deletes"
+    private const val KEY_PENDING_UPDATES = "pending_updates"
 
     private fun prefs(context: Context): SharedPreferences =
         context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
@@ -75,6 +76,26 @@ object Prefs {
         val current = pendingDeletes(context).toMutableSet()
         if (current.remove(eventId)) {
             prefs(context).edit().putStringSet(KEY_PENDING_DELETES, current).apply()
+        }
+    }
+
+    /** Same idea as [pendingDeletes], for a local edit (the widget's toggle-complete) whose PUT
+     * to the server hasn't been confirmed yet. The local cache already holds the edited row, so
+     * a sync arriving in the meantime must not let the server's still-stale copy overwrite it —
+     * it would otherwise flip a just-completed task back to incomplete for one tick. */
+    fun pendingUpdates(context: Context): Set<String> =
+        prefs(context).getStringSet(KEY_PENDING_UPDATES, emptySet()).orEmpty().toSet()
+
+    fun addPendingUpdate(context: Context, eventId: String) {
+        val current = pendingUpdates(context).toMutableSet()
+        current.add(eventId)
+        prefs(context).edit().putStringSet(KEY_PENDING_UPDATES, current).apply()
+    }
+
+    fun removePendingUpdate(context: Context, eventId: String) {
+        val current = pendingUpdates(context).toMutableSet()
+        if (current.remove(eventId)) {
+            prefs(context).edit().putStringSet(KEY_PENDING_UPDATES, current).apply()
         }
     }
 }

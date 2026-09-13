@@ -3,18 +3,13 @@ package com.covelo.calendar.widget
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.widget.Toast
 import com.covelo.calendar.alert.AlertScheduler
-import com.covelo.calendar.auth.ApiClient
 import com.covelo.calendar.auth.Prefs
 import com.covelo.calendar.sync.EventCache
 import com.covelo.calendar.sync.SyncWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.json.JSONArray
-import org.json.JSONObject
 
 /** Single tap target for the To-Do widget's rows — toggling complete or deleting a task. */
 class TodoActionReceiver : BroadcastReceiver() {
@@ -30,31 +25,22 @@ class TodoActionReceiver : BroadcastReceiver() {
     private fun toggleComplete(context: Context, taskId: String) {
         val pending = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
-            var failed = false
             try {
                 val current = EventCache.loadAll(context)[taskId]
                 if (current != null) {
                     val updated = current.copy(completed = !current.completed)
                     EventCache.upsertLocal(context, updated)
+                    Prefs.addPendingUpdate(context, taskId)
                     TodoWidgetProvider.updateAll(context)
                     ProgressWidgetProvider.updateAll(context)
                     AlertScheduler.rescheduleAll(context)
                     DayWidgetProvider.updateAll(context)
-
-                    val body = JSONObject().apply { put("events", JSONArray().put(updated.toServerJson())) }
-                    val res = ApiClient.authedRequest(context, "/events", "PUT", body.toString())
-                    failed = res.statusCode !in 200..299
-                    if (failed) android.util.Log.e("TodoAction", "Toggle failed: HTTP ${res.statusCode} ${res.body}")
+                    // The PUT deliberately does NOT happen here — same reasoning as the delete
+                    // in WidgetActionReceiver: this process can die before a multi-round-trip
+                    // network call finishes. SyncWorker retries it with a real execution window.
+                    SyncWorker.enqueueOneOff(context)
                 }
-            } catch (e: Exception) {
-                failed = true
-                android.util.Log.e("TodoAction", "Toggle threw", e)
             } finally {
-                if (failed) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "Update failed — will retry next sync", Toast.LENGTH_SHORT).show()
-                    }
-                }
                 pending.finish()
             }
         }

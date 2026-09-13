@@ -29,10 +29,13 @@ object ApiClient {
             connection.requestMethod = method
             connection.connectTimeout = 15_000
             connection.readTimeout = 15_000
+            // Set unconditionally: left alone, HttpURLConnection labels a bodyless request
+            // (a DELETE) `application/x-www-form-urlencoded` on its own, and the server rejected
+            // that with a 415 before the route ran — which is what broke every widget delete.
+            connection.setRequestProperty("Content-Type", "application/json")
             headers.forEach { (k, v) -> connection.setRequestProperty(k, v) }
             if (body != null) {
                 connection.doOutput = true
-                connection.setRequestProperty("Content-Type", "application/json")
                 OutputStreamWriter(connection.outputStream, StandardCharsets.UTF_8).use { it.write(body) }
             }
             val status = connection.responseCode

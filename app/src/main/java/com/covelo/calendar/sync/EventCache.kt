@@ -156,20 +156,25 @@ object EventCache {
      * drops rows the server reports as soft-deleted. An id still in Prefs.pendingDeletes (a
      * local delete whose DELETE request hasn't been confirmed yet) is skipped even if the server
      * still lists it as live — otherwise a delete that hasn't reached the server yet gets undone
-     * by the very next sync bringing the "still there" server row back into the cache. Returns
-     * the merged cache.
+     * by the very next sync bringing the "still there" server row back into the cache. Likewise
+     * an id in Prefs.pendingUpdates (the widget's toggle-complete, whose PUT hasn't been
+     * confirmed) keeps its pre-sync local value instead of being overwritten by the server's
+     * still-stale copy — otherwise a completed task could flip back to incomplete for one sync
+     * tick. Returns the merged cache.
      */
     @Synchronized
     fun applyServerEvents(context: Context, serverEventsJson: JSONArray, isIncremental: Boolean): Map<String, CachedEvent> {
-        val current = if (isIncremental) loadAll(context).toMutableMap() else mutableMapOf()
+        val before = loadAll(context)
+        val current = if (isIncremental) before.toMutableMap() else mutableMapOf()
         val pendingDeletes = com.covelo.calendar.auth.Prefs.pendingDeletes(context)
+        val pendingUpdates = com.covelo.calendar.auth.Prefs.pendingUpdates(context)
         for (i in 0 until serverEventsJson.length()) {
             val row = serverEventsJson.getJSONObject(i)
             val id = row.getString("id")
-            if (row.optBoolean("deleted", false) || id in pendingDeletes) {
-                current.remove(id)
-            } else {
-                current[id] = CachedEvent.fromServerJson(row)
+            when {
+                id in pendingUpdates -> before[id]?.let { current[id] = it }
+                row.optBoolean("deleted", false) || id in pendingDeletes -> current.remove(id)
+                else -> current[id] = CachedEvent.fromServerJson(row)
             }
         }
         saveAll(context, current)
