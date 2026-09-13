@@ -18,7 +18,9 @@ data class CachedEvent(
     val dueDate: String?,
     val completed: Boolean,
     val alertsRaw: Any?, // JSONObject (task) or JSONArray (event) or null — polymorphic, see handoff §4
-    val alertStyle: String? // "alarm" | "notification" | null
+    val alertStyle: String?, // "alarm" | "notification" | null
+    val color: String, // hex, for widget/UI rendering — not used by alert math
+    val category: String?
 ) {
     fun toJson(): JSONObject = JSONObject().apply {
         put("id", id)
@@ -32,6 +34,8 @@ data class CachedEvent(
         put("completed", completed)
         put("alerts", alertsRaw ?: JSONObject.NULL)
         put("alertStyle", alertStyle ?: JSONObject.NULL)
+        put("color", color)
+        put("category", category ?: JSONObject.NULL)
     }
 
     companion object {
@@ -46,7 +50,9 @@ data class CachedEvent(
             dueDate = o.optNullableString("dueDate"),
             completed = o.optBoolean("completed", false),
             alertsRaw = if (o.isNull("alerts")) null else o.get("alerts"),
-            alertStyle = o.optNullableString("alertStyle")
+            alertStyle = o.optNullableString("alertStyle"),
+            color = o.optString("color", "#7FBBB3"),
+            category = o.optNullableString("category")
         )
 
         /** Builds from a raw server event (as returned by GET /events). */
@@ -61,7 +67,9 @@ data class CachedEvent(
             dueDate = o.optNullableString("dueDate"),
             completed = o.optBoolean("completed", false),
             alertsRaw = if (o.isNull("alerts")) null else o.opt("alerts"),
-            alertStyle = o.optNullableString("alertStyle")
+            alertStyle = o.optNullableString("alertStyle"),
+            color = o.optString("color", "#7FBBB3"),
+            category = o.optNullableString("category")
         )
     }
 }

@@ -11,6 +11,7 @@ import androidx.work.WorkerParameters
 import com.covelo.calendar.alert.AlertScheduler
 import com.covelo.calendar.auth.ApiClient
 import com.covelo.calendar.auth.Prefs
+import com.covelo.calendar.widget.DayWidgetProvider
 import org.json.JSONObject
 import java.time.Instant
 import java.util.concurrent.TimeUnit
@@ -33,6 +34,7 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
             Prefs.saveLastSync(applicationContext, Instant.now().toString())
 
             AlertScheduler.rescheduleAll(applicationContext)
+            DayWidgetProvider.updateAll(applicationContext)
             Result.success()
         } catch (e: Exception) {
             Result.retry()

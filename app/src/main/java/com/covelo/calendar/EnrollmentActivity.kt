@@ -1,5 +1,7 @@
 package com.covelo.calendar
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.ProgressBar
@@ -7,6 +9,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.covelo.calendar.alert.AlarmReceiver
 import com.covelo.calendar.auth.ApiClient
 import com.covelo.calendar.auth.Prefs
 import com.covelo.calendar.sync.SyncWorker
@@ -62,5 +65,26 @@ class EnrollmentActivity : AppCompatActivity() {
                 }
             }
         }
+
+        findViewById<MaterialButton>(R.id.testAlarmButton).setOnClickListener {
+            fireTestAlert(alertStyle = "alarm", title = "Test alarm", body = "This is what an important item rings like")
+        }
+        findViewById<MaterialButton>(R.id.testNotificationButton).setOnClickListener {
+            fireTestAlert(alertStyle = "notification", title = "Test notification", body = "This is what a regular reminder looks like")
+        }
+    }
+
+    /** Fires the exact same code path a real due alert would (AlarmReceiver), immediately,
+     * so you can confirm sound/full-screen/permissions actually work on this phone. */
+    private fun fireTestAlert(alertStyle: String, title: String, body: String) {
+        val key = "test-$alertStyle-${System.currentTimeMillis()}"
+        val intent = Intent(this, AlarmReceiver::class.java).apply {
+            data = Uri.parse("calendarapp://alert/$key")
+            putExtra(AlarmReceiver.EXTRA_KEY, key)
+            putExtra(AlarmReceiver.EXTRA_TITLE, title)
+            putExtra(AlarmReceiver.EXTRA_BODY, body)
+            putExtra(AlarmReceiver.EXTRA_ALERT_STYLE, alertStyle)
+        }
+        sendBroadcast(intent)
     }
 }

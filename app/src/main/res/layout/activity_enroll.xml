@@ -83,5 +83,42 @@
             android:layout_marginTop="16dp"
             android:textColor="#E67E80" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="16dp"
+            android:background="#33808080" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Test delivery"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Fires immediately, exactly like a real alert — use this to confirm sound, full-screen ringing, and notification permissions actually work on this phone."
+            android:textColor="#7A8478"
+            android:layout_marginBottom="16dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/testAlarmButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#E67E80"
+            android:text="Test alarm" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/testNotificationButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="#7FBBB3"
+            android:text="Test notification" />
+
     </LinearLayout>
 </ScrollView>

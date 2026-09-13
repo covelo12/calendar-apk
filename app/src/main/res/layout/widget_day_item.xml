@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp">
+
+    <View
+        android:id="@+id/itemAccent"
+        android:layout_width="4dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="8dp" />
+
+    <ImageView
+        android:id="@+id/itemColorDot"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:layout_marginEnd="8dp"
+        android:src="@drawable/widget_dot" />
+
+    <TextView
+        android:id="@+id/itemTime"
+        android:layout_width="46dp"
+        android:layout_height="wrap_content"
+        android:textColor="#859289"
+        android:textSize="11sp" />
+
+    <TextView
+        android:id="@+id/itemTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="#D3C6AA"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/itemImportantMark"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:text="!"
+        android:textColor="#E67E80"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+</LinearLayout>
