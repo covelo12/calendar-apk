@@ -136,8 +136,14 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
             val request = OneTimeWorkRequestBuilder<SyncWorker>()
                 .setConstraints(requiresNetwork)
                 .build()
+            // Appended rather than REPLACE: replacing cancels the sync already in flight, and
+            // now that every widget action and every write in the page asks for one, two edits
+            // in quick succession had the second killing the first mid-request — observed as
+            // "Sync threw: JobCancellationException" with the round trip wasted. Each run reads
+            // the current queues and cursor when it starts, so letting the in-flight one finish
+            // and following it with another loses nothing.
             WorkManager.getInstance(context)
-                .enqueueUniqueWork(ONE_OFF_WORK_NAME, ExistingWorkPolicy.REPLACE, request)
+                .enqueueUniqueWork(ONE_OFF_WORK_NAME, ExistingWorkPolicy.APPEND_OR_REPLACE, request)
         }
     }
 }
