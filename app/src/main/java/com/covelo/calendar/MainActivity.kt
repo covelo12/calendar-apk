@@ -8,8 +8,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.view.Menu
-import android.view.MenuItem
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -18,7 +16,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.covelo.calendar.auth.Prefs
-import com.covelo.calendar.sync.SyncWorker
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 /**
  * WebView shell over the deployed PWA — this gets 100% UI parity with the web app for free
@@ -42,6 +40,10 @@ class MainActivity : AppCompatActivity() {
         requestNotificationPermissionIfNeeded()
         promptExactAlarmPermissionIfNeeded()
 
+        findViewById<FloatingActionButton>(R.id.deviceSetupFab).setOnClickListener {
+            startActivity(Intent(this, EnrollmentActivity::class.java))
+        }
+
         val progressBar = findViewById<ProgressBar>(R.id.progressBar)
         webView = findViewById(R.id.webView)
         webView.settings.javaScriptEnabled = true
@@ -59,26 +61,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         if (webView.canGoBack()) webView.goBack() else super.onBackPressed()
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_device_setup -> {
-                startActivity(Intent(this, EnrollmentActivity::class.java))
-                true
-            }
-            R.id.action_sync_now -> {
-                SyncWorker.enqueueOneOff(this)
-                Toast.makeText(this, "Syncing…", Toast.LENGTH_SHORT).show()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
     }
 
     private fun requestNotificationPermissionIfNeeded() {

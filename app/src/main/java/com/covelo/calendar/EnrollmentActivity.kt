@@ -72,6 +72,10 @@ class EnrollmentActivity : AppCompatActivity() {
         findViewById<MaterialButton>(R.id.testNotificationButton).setOnClickListener {
             fireTestAlert(alertStyle = "notification", title = "Test notification", body = "This is what a regular reminder looks like")
         }
+        findViewById<MaterialButton>(R.id.syncNowButton).setOnClickListener {
+            SyncWorker.enqueueOneOff(this)
+            Toast.makeText(this, "Syncing…", Toast.LENGTH_SHORT).show()
+        }
     }
 
     /** Fires the exact same code path a real due alert would (AlarmReceiver), immediately,
